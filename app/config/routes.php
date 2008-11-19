@@ -40,8 +40,10 @@
 |
 */
 
-$route['default_controller'] = "welcome";
+$route['default_controller'] = "term_controller";
 $route['scaffolding_trigger'] = "";
+
+$route['term/(:any)'] = "term_controller/lookup/$1";
 
 
 /* End of file routes.php */
