@@ -17,7 +17,7 @@ class Twitter_User extends Model {
 	// Load Model data based on twitter_screen_name
 	public function load( $twitter_user_name = '' ) {
 		$query = $this->db->get_where('twitter_user', array('twitter_user_name' => $twitter_user_name));
-		if ( $this->db->count_all_results() == 0 )
+		if ( $query->num_rows() == 0 )
 			return;
 		$row = $query->row();
 		$this->setModel( $twitter_user_name, $row->twitter_profile_image_url );

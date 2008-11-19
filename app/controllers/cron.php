@@ -43,15 +43,23 @@ class Cron extends Controller {
 			$tp->save();
 
 			$a[] = $tp;
+			$this->c += 1;
 		}
 		
 		$twitter_post_data['twitter_posts'] = $a;
-
-		$this->template->write('title', 'Tweets | '.$username);
-		$this->template->write_view('content', 'timeline', $twitter_post_data);
-		$this->template->render();
+echo $this->c.' '.count($a).' '.$username.'<br/>';
+		//$this->template->write('title', 'Tweets | '.$username);
+		//$this->template->write_view('content', 'timeline', $twitter_post_data);
+		//$this->template->render();
 	}
-
+	
+	function loop( $date = '2008-11-15' ) {
+		foreach( $this->users as $u )
+			$this->user( $u, $date );
+	}
+private $c = 0;
+	public $users = array('BarackObama', 'kevinrose', 'leolaporte', 'cnnbrk', 'alexalbrecht', 'JasonCalacanis', 'Scobleizer', 'Veronica', 'THErealDVORAK', 'ricksanchezcnn', 'TechCrunch', 'hotdogsladies');
+	
 }
 
 ?>

@@ -27,7 +27,7 @@ class Twitter_Post extends Model {
 	// Load Model data based on TwitterPostId
 	public function load( $twitter_post_id = 0 ) {
 		$query = $this->db->get_where('twitter_post', array('twitter_post_id' => $twitter_post_id));
-		if ( $this->db->count_all_results() == 0 )
+		if ( $query->num_rows() == 0 )
 			return;
 		$row = $query->row();
 		$this->setModel( $twitter_post_id, $row->twitter_user_name, $row->time_period_id, $row->content, $row->published_datetime );
