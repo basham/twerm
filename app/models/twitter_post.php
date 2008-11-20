@@ -10,6 +10,7 @@ class Twitter_Post extends Model {
 	
 	private $_twitter_user = null;
 	private $_time_period = null;
+	private $_uniqueTerms = array();
 	
 	function Twitter_Post() {
 		parent::Model();
@@ -24,23 +25,6 @@ class Twitter_Post extends Model {
 		return new Twitter_Post();
 	}
 	
-	// Load Model data based on TwitterPostId
-	public function load( $twitter_post_id = 0 ) {
-		$query = $this->db->get_where('twitter_post', array('twitter_post_id' => $twitter_post_id));
-		if ( $query->num_rows() == 0 )
-			return;
-		$row = $query->row();
-		$this->setModel( $twitter_post_id, $row->twitter_user_name, $row->time_period_id, $row->content, $row->published_datetime );
-	}
-	
-	public function save() {
-		$this->db->from('twitter_post')->where('twitter_post_id', $this->twitter_post_id);
-		if ( $this->db->count_all_results() == 0 )
-			$this->db->insert('twitter_post', $this);
-		else
-			$this->db->where('twitter_post_id', $this->twitter_post_id)->update('twitter_post', $this);
-	}
-	
 	// Set Model data
 	public function setModel( $twitter_post_id, $twitter_user_name, $time_period_id, $content, $published_datetime, $autoload = true ) {
 		$this->twitter_post_id = $twitter_post_id;
@@ -52,6 +36,30 @@ class Twitter_Post extends Model {
 		if ( $autoload )
 			$this->loadTwitterUser();
 	}
+	
+	// Load Model data based on TwitterPostId
+	public function load( $twitter_post_id = 0 ) {
+		$query = $this->db->get_where('twitter_post', array('twitter_post_id' => $twitter_post_id));
+		if ( $query->num_rows() == 0 )
+			return;
+		$row = $query->row();
+		$this->setModel( $twitter_post_id, $row->twitter_user_name, $row->time_period_id, $row->content, $row->published_datetime );
+	}
+	
+	// Loads TwitterUser Model based on twitterScreenName
+	public function loadTwitterUser() {
+		$this->_twitter_user = $this->Twitter_User->newInstance();
+		$this->_twitter_user->load( $this->twitter_user_name );
+	}
+	
+	public function save() {
+		$this->db->from('twitter_post')->where('twitter_post_id', $this->twitter_post_id);
+		if ( $this->db->count_all_results() == 0 )
+			$this->db->insert('twitter_post', $this);
+		else
+			$this->db->where('twitter_post_id', $this->twitter_post_id)->update('twitter_post', $this);
+		$this->calculateTermFrequency();
+	}
 
 	// Get TwitterUser Model based on twitterScreenName
 	// Force the Load of the TwitterUser if the twitterScreenName
@@ -61,12 +69,6 @@ class Twitter_Post extends Model {
 		if ( !$this->_twitter_user || $force )
 			$this->loadTwitterUser();
 		return $this->_twitter_user;
-	}
-	
-	// Loads TwitterUser Model based on twitterScreenName
-	public function loadTwitterUser() {
-		$this->_twitter_user = $this->Twitter_User->newInstance();
-		$this->_twitter_user->load( $this->twitter_user_name );
 	}
 	
 	// Get TimePeriod Model based on timePeriodId
@@ -81,6 +83,77 @@ class Twitter_Post extends Model {
 	// Find and add links, hash tags, terms, etc. to twitter post content
 	public function getProcessedContent() {
 		return $this->content;
+	}
+	
+	public function getAllTwitterPosts() {
+		$query = $this->db->select('twitter_post_id')->get('twitter_post');
+		return $query->result();
+	}
+	
+	public function calculateTermFrequency() {
+
+		$this->_uniqueTerms = array();
+		
+		// Deliminate words by any space characters, decode HTML entities
+		$splitArray =  split( '[[:space:]]' , htmlspecialchars_decode($this->content) );
+
+		// Find word frequency in the array
+		foreach( $splitArray as $word ) {
+			
+			/*
+			TODO: Allow words that are not purely non-alpha: l33t sp3@c4 G4
+			*/
+			
+			// Ignore referers ( @leolaporte ), URLs ( http://www.google.com )
+			if ( preg_match( '/(^@|:\/\/)/', $word, $matches ) > 0 )
+				continue;
+			
+			// Replace any non-alphanumeric/# characters at the beginning or end of a word, lowercase
+			$word = ereg_replace( '(^[^a-zA-Z0-9#]+)|([^a-zA-Z0-9]+$)', '', strtolower($word) );
+			
+			// Ingore a word with more than one internal non-alphanumeric character or a word of no length
+			if ( preg_match( '/([^a-zA-Z]{2,}|[0-9]+)/', $word, $matches ) > 0 || strlen($word) == 0 )
+				continue;
+				
+			// Store word frequency
+			if ( array_key_exists( $word, $this->_uniqueTerms ) )
+				$this->_uniqueTerms[$word] += 1;
+			else
+				$this->_uniqueTerms[$word] = 1;
+		}
+		
+		echo '<p>'.$this->content.'</p>';
+		echo '<p>';
+		print_r($splitArray);
+		echo '</p><p>';
+		print_r($this->_uniqueTerms);
+		echo '</p>';
+		
+		foreach( $this->_uniqueTerms as $term => $count )
+			$this->saveTermFrequency( $term, $count );
+	}
+	
+	private function saveTermFrequency( $term, $count ) {
+
+		// Insert Term if its not already stored
+		$query = $this->db->from('twitter_term')->where('term', $term);
+		if ( $this->db->count_all_results() == 0 )
+			$this->db->insert('twitter_term', array('term' => $term));
+	
+		// Insert or update Twitter_Post_Term
+		$query = $this->db->get_where('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
+		if ( $query->num_rows() == 0 )
+			$this->db->insert('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id, 'term' => $term, 'count' => $count));
+		else
+			$this->db->update('twitter_post_term', array('count' => $count), array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
+		
+		// Insert or update Time_Period_Term
+		$query = $this->db->get_where('time_period_term', array('time_period_id' => $this->time_period_id, 'term' => $term)); 
+		if ( $query->num_rows() == 0 )
+			$this->db->insert('time_period_term', array('time_period_id' => $this->time_period_id, 'term' => $term, 'count' => $count));
+		else
+			$this->db->update('time_period_term', array('count' => ($count + $query->row()->count)), array('time_period_id' => $this->time_period_id, 'term' => $term));
+		
 	}
 	
 }

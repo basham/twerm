@@ -60,6 +60,20 @@ echo $this->c.' '.count($a).' '.$username.'<br/>';
 private $c = 0;
 	public $users = array('BarackObama', 'kevinrose', 'leolaporte', 'cnnbrk', 'alexalbrecht', 'JasonCalacanis', 'Scobleizer', 'Veronica', 'THErealDVORAK', 'ricksanchezcnn', 'TechCrunch', 'hotdogsladies');
 	
+	function loopy() {
+		$this->load->model('Twitter_Post');
+		$r = $this->Twitter_Post->getAllTwitterPosts();
+		foreach( $r as $row )
+			$this->tf( $row->twitter_post_id );
+	}
+	
+	function tf( $twitter_post_id = 986853782 ) {
+		$this->load->model('Twitter_Post');
+		$t = $this->Twitter_Post->newInstance();
+		$t->load($twitter_post_id);
+		$t->calculateTermFrequency();
+	}
+	
 }
 
 ?>

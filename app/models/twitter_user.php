@@ -14,6 +14,12 @@ class Twitter_User extends Model {
 		return new Twitter_User();
 	}
 	
+	// Set Model data
+	public function setModel( $twitter_user_name, $twitter_profile_image_url ) {
+		$this->twitter_user_name = $twitter_user_name;
+		$this->twitter_profile_image_url = $twitter_profile_image_url;
+	}
+	
 	// Load Model data based on twitter_screen_name
 	public function load( $twitter_user_name = '' ) {
 		$query = $this->db->get_where('twitter_user', array('twitter_user_name' => $twitter_user_name));
@@ -29,12 +35,6 @@ class Twitter_User extends Model {
 			$this->db->insert('twitter_user', $this);
 		else
 			$this->db->where('twitter_user_name', $this->twitter_user_name)->update('twitter_user', $this);
-	}
-	
-	// Set Model data
-	public function setModel( $twitter_user_name, $twitter_profile_image_url ) {
-		$this->twitter_user_name = $twitter_user_name;
-		$this->twitter_profile_image_url = $twitter_profile_image_url;
 	}
 	
 	// Permalink to the Twitter User on the Twitter site
