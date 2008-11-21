@@ -74,6 +74,13 @@ private $c = 0;
 		$t->calculateTermFrequency();
 	}
 	
+	function tfidf() {
+		$this->load->model('Time_Period');
+		$t = $this->Time_Period->newInstance();
+		$t->load(1);
+		$t->calculateTFIDF();
+	}
+	
 }
 
 ?>
