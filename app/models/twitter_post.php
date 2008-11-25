@@ -148,12 +148,13 @@ class Twitter_Post extends Model {
 			$this->db->update('twitter_post_term', array('count' => $count), array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
 		
 		// Insert or update Time_Period_Term
+		/*
 		$query = $this->db->get_where('time_period_term', array('time_period_id' => $this->time_period_id, 'term' => $term)); 
 		if ( $query->num_rows() == 0 )
 			$this->db->insert('time_period_term', array('time_period_id' => $this->time_period_id, 'term' => $term, 'count' => $count));
 		else
 			$this->db->update('time_period_term', array('count' => ($count + $query->row()->count)), array('time_period_id' => $this->time_period_id, 'term' => $term));
-		
+		*/
 	}
 	
 }

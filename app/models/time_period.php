@@ -3,9 +3,8 @@
 class Time_Period extends Model {
 	
 	public $time_period_id = 0;
-	public $time_period_date = '';
-	public $start_datetime = '';
-	public $end_datetime = '';
+	public $start_date = '';
+	public $end_date = '';
 	
 	function Time_Period() {
 		parent::Model();
@@ -17,11 +16,10 @@ class Time_Period extends Model {
 	}
 	
 	// Set Model data
-	public function setModel( $time_period_id, $time_period_date, $start_datetime, $end_datetime ) {
+	public function setModel( $time_period_id, $start_date, $end_date ) {
 		$this->time_period_id = $time_period_id;
-		$this->time_period_date = $time_period_date;
-		$this->start_datetime = $start_datetime;
-		$this->end_datetime = $end_datetime;
+		$this->start_date = $start_date;
+		$this->end_date = $end_date;
 	}
 	
 	// Load Model data based on twitter_screen_name
@@ -30,7 +28,7 @@ class Time_Period extends Model {
 		if ( $query->num_rows() == 0 )
 			return;
 		$row = $query->row();
-		$this->setModel( $time_period_id, $row->time_period_date, $row->start_datetime, $row->end_datetime );
+		$this->setModel( $time_period_id, $row->start_date, $row->end_date );
 	}
 	
 	public function save() {
@@ -41,7 +39,24 @@ class Time_Period extends Model {
 			$this->db->where('time_period_id', $this->time_period_id)->update('time_period', $this);
 	}
 	
+	public function getPreviousTimePeriodId() {
+		// Divide by zero?
+		// 
+//	SELECT *, time_period_id, (DATEDIFF(end_date, start_date) / 5) AS time_span_match FROM `time_period` WHERE time_period_id != 1 AND end_date <= "2008-10-31" HAVING time_span_match BETWEEN .8 AND 1.2 ORDER BY time_span_match DESC
+// 
+		$query = $this->db->query('SELECT time_period_id FROM time_period WHERE end_date <= ? AND DATEDIFF(end_date, start_date) = ? ORDER BY start_date DESC LIMIT 1', array($this->end_date, 0));
+		
+		$row = $query->row();
+		
+		return $row->time_period_id;
+	}
+	
 	public function calculateTFIDF() {
+		
+		$this->db->delete('time_period_term', array('time_period_id' => $this->time_period_id));
+		
+		// Populate Term Frequency for a Time Period range
+		$query = $this->db->query('INSERT INTO time_period_term (time_period_id, term, count) SELECT time_period.time_period_id, twitter_post_term.term, SUM(twitter_post_term.count) FROM twitter_post_term, twitter_post, time_period WHERE twitter_post_term.twitter_post_id = twitter_post.twitter_post_id AND DATE_FORMAT(twitter_post.published_datetime, "%Y-%m-%d") BETWEEN DATE_FORMAT(time_period.start_date, "%Y-%m-%d") AND DATE_FORMAT(time_period.end_date, "%Y-%m-%d") AND time_period.time_period_id = ? GROUP BY twitter_post_term.term', array($this->time_period_id));
 		
 		// Calculate the total number of Twitter Posts stored
 		$totalTwitterPosts = $this->db->count_all('twitter_post');
@@ -61,8 +76,9 @@ class Time_Period extends Model {
 		*/
 		
 		// Calculate all Terms' Document Frequency, Total Frequency
-		$query = $this->db->query('SELECT time_period_term.term AS term, time_period_term.count AS count, COUNT(*) AS document_frequency FROM twitter_post_term, time_period_term WHERE twitter_post_term.term = time_period_term.term && time_period_id = ? GROUP BY term', array($this->time_period_id));
-		
+		$query = $this->db->query('SELECT time_period_term.term AS term, time_period_term.count AS count, COUNT(*) AS document_frequency FROM twitter_post_term, time_period_term, twitter_post, time_period WHERE twitter_post_term.term = time_period_term.term AND twitter_post.twitter_post_id = twitter_post_term.twitter_post_id AND time_period_term.time_period_id = time_period.time_period_id AND  DATE_FORMAT(twitter_post.published_datetime, "%Y-%m-%d") BETWEEN DATE_FORMAT(time_period.start_date, "%Y-%m-%d") AND DATE_FORMAT(time_period.end_date, "%Y-%m-%d") AND time_period.time_period_id = ? GROUP BY time_period_term.term', array($this->time_period_id));
+			//	$query = $this->db->query('SELECT time_period_term.term AS term, time_period_term.count AS count, COUNT(*) AS document_frequency FROM twitter_post_term, time_period_term WHERE twitter_post_term.term = time_period_term.term && time_period_id = ? GROUP BY term', array($this->time_period_id));
+				
 		foreach( $query->result() as $row ) {
 			
 			// Calculate Term Frequency
@@ -98,6 +114,11 @@ class Time_Period extends Model {
 		-- UPDATE time_period_term SET power_rank = ( SELECT power_rank FROM power_rankings WHERE term = time_period_term.term );
 		
 		-- DROP TEMPORARY TABLE power_rankings;
+		*/
+		
+		/*
+		TWITTER_USER RANKS - NECCESSARY?
+		count TFIDF for each term a user used
 		*/
 	}
 }
