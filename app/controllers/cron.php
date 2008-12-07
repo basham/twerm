@@ -13,6 +13,8 @@ class Cron extends Controller {
 	
 	function user( $username = 'kevinrose', $date = '2008-11-15' ) {
 		
+		set_time_limit(10);
+		
 		$this->load->model('Twitter_Post');
 		$this->load->model('Twitter_User');
 		
@@ -79,6 +81,25 @@ private $c = 0;
 		$t = $this->Time_Period->newInstance();
 		$t->load(1);
 		$t->calculateTFIDF();
+	}
+	
+	function month( $m = 11, $y = 2008 ) {
+		
+		$this->load->helper('date');
+		$this->load->model('Time_Period');
+		
+		for( $d = 1; $d <= days_in_month($m, $y); $d++ ) {
+			$dt = new DateTime( $y.'-'.$m.'-'.$d );
+			$date = $dt->format('Y-m-d');
+			$t = $this->Time_Period->newInstance();
+			$t->setModel(0, $date, $date);
+			$t->save();
+			echo '<strong>'.$date.'</strong><br/>';
+			
+			$this->loop($date);
+			$t->calculateTFIDF();
+			echo '<br/>';
+		}
 	}
 	
 }

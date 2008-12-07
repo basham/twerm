@@ -5,6 +5,7 @@ class Time_Period extends Model {
 	public $time_period_id = 0;
 	public $start_date = '';
 	public $end_date = '';
+	public $recalculate_flag = 0;
 	
 	function Time_Period() {
 		parent::Model();
@@ -16,10 +17,11 @@ class Time_Period extends Model {
 	}
 	
 	// Set Model data
-	public function setModel( $time_period_id, $start_date, $end_date ) {
+	public function setModel( $time_period_id, $start_date, $end_date, $recalculate_flag = 0 ) {
 		$this->time_period_id = $time_period_id;
 		$this->start_date = $start_date;
 		$this->end_date = $end_date;
+		$this->recalculate_flag = $recalculate_flag;
 	}
 	
 	// Load Model data based on twitter_screen_name
@@ -33,10 +35,14 @@ class Time_Period extends Model {
 	
 	public function save() {
 		$this->db->from('time_period')->where('time_period_id', $this->time_period_id);
-		if ( $this->db->count_all_results() == 0 )
-			$this->db->insert('time_period', $this);
-		else
-			$this->db->where('time_period_id', $this->time_period_id)->update('time_period', $this);
+		if ( $this->db->count_all_results() == 0 ) {
+			$query = $this->db->get_where('time_period', array('start_date' => $this->start_date, 'end_date' => $this->end_date));
+			if ( $query->num_rows() == 0 )
+				$this->db->insert('time_period', $this);
+			else
+				$this->time_period_id = $query->row()->time_period_id;
+		} else
+			$this->db->update('time_period', $this, array('time_period_id' => $this->time_period_id));
 	}
 	
 	public function getPreviousTimePeriodId() {
@@ -70,6 +76,14 @@ class Time_Period extends Model {
 		// Calculate the total number of Time Periods
 		$totalTimePeriods = $this->db->count_all('time_period');
 		
+		
+		// Delete temporary Document Frequency table
+		$this->db->query('DROP TEMPORARY TABLE IF EXISTS temp_df');
+		
+		// Delete temporary Term table
+		$this->db->query('DROP TEMPORARY TABLE IF EXISTS temp_terms');
+		
+		
 		// Calculate all Terms' Document Frequency
 		$this->db->query('CREATE TEMPORARY TABLE temp_df SELECT term, COUNT(*) AS document_frequency FROM time_period_term GROUP BY term');
 
@@ -77,13 +91,13 @@ class Time_Period extends Model {
 		$this->db->query('CREATE TEMPORARY TABLE temp_terms SELECT time_period_term.term AS term, time_period_term.count AS count, temp_df.document_frequency AS document_frequency FROM time_period_term, temp_df WHERE time_period_term.term = temp_df.term AND time_period_id = ?', array($this->time_period_id));
 		
 		// Delete temporary Document Frequency table
-		$this->db->query('DROP TEMPORARY TABLE temp_df');
+		$this->db->query('DROP TEMPORARY TABLE IF EXISTS temp_df');
 		
 		// Calculate and store TF-IDF score for each Term in the Time Period
 		$this->db->query('UPDATE time_period_term, temp_terms SET time_period_term.tf_idf = ( ( temp_terms.count / ? ) * LOG( ? / temp_terms.document_frequency ) ) WHERE time_period_term.term = temp_terms.term AND time_period_term.time_period_id = ?', array($totalTermCount, $totalTimePeriods, $this->time_period_id));
 
 		// Delete temporary Term table
-		$this->db->query('DROP TEMPORARY TABLE temp_terms');
+		$this->db->query('DROP TEMPORARY TABLE IF EXISTS temp_terms');
 		
 		// Calculate and store ranks based on TF-IDF score
 		$this->db->query('SET @rowcount = 0');
@@ -103,6 +117,9 @@ class Time_Period extends Model {
 		TWITTER_USER RANKS - NECCESSARY?
 		count TFIDF for each term a user used
 		*/
+		
+		$this->recalculate_flag = 0;
+		$this->save();
 	}
 }
 

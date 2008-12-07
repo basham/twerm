@@ -92,6 +92,9 @@ class Twitter_Post extends Model {
 	
 	public function calculateTermFrequency() {
 
+		// Remove any previous term calculations for this Twitter Post
+		$this->db->delete('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id));
+		
 		$this->_uniqueTerms = array();
 		
 		// Deliminate words by any space characters, decode HTML entities
@@ -131,6 +134,11 @@ class Twitter_Post extends Model {
 		*/
 		foreach( $this->_uniqueTerms as $term => $count )
 			$this->saveTermFrequency( $term, $count );
+		
+		$d = new DateTime( $this->published_datetime );
+		$date = $d->format('Y-m-d');
+		
+		$this->db->update('time_period', array('recalculate_flag' => 1), array('start_date >=' => $date, 'end_date <=' => $date));
 	}
 	
 	private function saveTermFrequency( $term, $count ) {
@@ -141,11 +149,11 @@ class Twitter_Post extends Model {
 			$this->db->insert('twitter_term', array('term' => $term));
 	
 		// Insert or update Twitter_Post_Term
-		$query = $this->db->get_where('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
-		if ( $query->num_rows() == 0 )
-			$this->db->insert('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id, 'term' => $term, 'count' => $count));
-		else
-			$this->db->update('twitter_post_term', array('count' => $count), array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
+		//$query = $this->db->get_where('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
+	//	if ( $query->num_rows() == 0 )
+		$this->db->insert('twitter_post_term', array('twitter_post_id' => $this->twitter_post_id, 'term' => $term, 'count' => $count));
+		//else
+		//	$this->db->update('twitter_post_term', array('count' => $count), array('twitter_post_id' => $this->twitter_post_id, 'term' => $term));
 	}
 	
 }
