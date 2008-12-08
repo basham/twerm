@@ -1,8 +1,14 @@
 <?php
 
 foreach( $terms as $term ) {
-	$data['term'] = $term;
-	$this->load->view('time_period_term', $data);
+	
+	echo '<p class="twitter-term">';
+
+	echo '<strong>#'.$term->rank.'</strong> ';
+	echo '<a href="'.$term->getURL().'"><em>'.$term->term.'</em></a>';
+
+	echo '</p>';
+	
 }
 
 ?>

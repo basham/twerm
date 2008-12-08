@@ -45,6 +45,7 @@ $route['scaffolding_trigger'] = "";
 
 $route['(:num)/(:num)/(:num)'] = "time_period_controller/day_period/$1/$2/$3";
 $route['(:num)/(:num)/(:num)/timeline'] = "time_period_controller/day_period_timeline/$1/$2/$3";
+$route['(:num)/(:num)/(:num)/term/(:any)'] = "time_period_controller/day_period_term/$1/$2/$3/$4";
 
 $route['term/(:any)'] = "term_controller/lookup/$1";
 

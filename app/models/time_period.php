@@ -27,6 +27,10 @@ class Time_Period extends Model {
 		$this->recalculate_flag = $recalculate_flag;
 	}
 	
+	public function setModelByObject( $obj ) {
+		$this->setModel( $obj->time_period_id, $obj->start_date, $obj->end_date, $obj->recalculate_flag );
+	}
+	
 	// Load Model data based on twitter_screen_name
 	public function load( $time_period_id ) {
 		$query = $this->db->get_where('time_period', array('time_period_id' => $time_period_id));
@@ -41,8 +45,7 @@ class Time_Period extends Model {
 	private function _load( $queryResults ) {
 		if ( $queryResults->num_rows() == 0 )
 			return false;
-		$row = $queryResults->row();
-		$this->setModel( $row->time_period_id, $row->start_date, $row->end_date, $row->recalculate_flag );
+		$this->setModelByObject( $queryResults->row() );
 		return true;
 	}
 	
@@ -92,6 +95,7 @@ class Time_Period extends Model {
 			// Creates Twitter Post
 			$t = $this->Time_Period_Term->newInstance();
 			$t->setModelByObject( $row );
+			$t->setTimePeriod( $this );
 
 			$a[] = $t;
 		}

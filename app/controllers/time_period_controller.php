@@ -6,6 +6,7 @@ class Time_Period_Controller extends Controller {
 		parent::Controller();
 		$this->load->library('template');
 		$this->load->model('Time_Period');
+		$this->load->model('Time_Period_Term');
 		$this->load->helper('twerm_helper');
 	}
 
@@ -22,7 +23,7 @@ class Time_Period_Controller extends Controller {
 	function day_period( $year, $month, $day ) {
 
 		$tp = $this->Time_Period->newInstance();
-		$tp->loadByDate( twerm_date($year, $month, $day) );
+		$tp->loadByDate( twerm_date($year.$month.$day) );
 		
 		$data = array();
 		$data['terms'] = $tp->getTerms();
@@ -35,7 +36,7 @@ class Time_Period_Controller extends Controller {
 	function day_period_timeline( $year, $month, $day ) {
 
 		$tp = $this->Time_Period->newInstance();
-		$tp->loadByDate( twerm_date($year, $month, $day) );
+		$tp->loadByDate( twerm_date($year.$month.$day) );
 		
 		$data = array();
 		$data['twitter_posts'] = $tp->getTwitterPosts();
@@ -45,6 +46,24 @@ class Time_Period_Controller extends Controller {
 		$this->template->render();
 	}
 
+	function day_period_term( $year, $month, $day, $term ) {
+
+		$term = strtolower($term);
+
+		$tp = $this->Time_Period->newInstance();
+		$tp->loadByDate( twerm_date($year.$month.$day) );
+		
+		$t = $this->Time_Period_Term->newInstance();
+		$t->load( $tp->time_period_id, $term );
+		
+		$data = array();
+		$data['twitter_posts'] = $t->getTwitterPosts();
+		
+		$this->template->write('title', twerm_title( array( $tp->start_date, $term ) ));
+		$this->template->write_view('content', 'timeline', $data);
+		$this->template->render();
+	}
+	
 }
 
 ?>
