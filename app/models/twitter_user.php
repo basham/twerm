@@ -20,6 +20,10 @@ class Twitter_User extends Model {
 		$this->twitter_profile_image_url = $twitter_profile_image_url;
 	}
 	
+	public function setModelByObject( $obj ) {
+		$this->setModel( $obj->twitter_user_name, $obj->twitter_profile_image_url );
+	}
+	
 	// Load Model data based on twitter_screen_name
 	public function load( $twitter_user_name = '' ) {
 		$query = $this->db->get_where('twitter_user', array('twitter_user_name' => $twitter_user_name));

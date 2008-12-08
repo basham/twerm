@@ -37,6 +37,10 @@ class Twitter_Post extends Model {
 			$this->loadTwitterUser();
 	}
 	
+	public function setModelByObject( $obj ) {
+		$this->setModel( $obj->twitter_post_id, $obj->twitter_user_name, $obj->time_period_id, $obj->content, $obj->published_datetime );
+	}
+	
 	// Load Model data based on TwitterPostId
 	public function load( $twitter_post_id = 0 ) {
 		$query = $this->db->get_where('twitter_post', array('twitter_post_id' => $twitter_post_id));
@@ -50,6 +54,10 @@ class Twitter_Post extends Model {
 	public function loadTwitterUser() {
 		$this->_twitter_user = $this->Twitter_User->newInstance();
 		$this->_twitter_user->load( $this->twitter_user_name );
+	}
+	
+	public function setTwitterUser( $twitterUser ) {
+		$this->_twitter_user = $twitterUser;
 	}
 	
 	public function save() {

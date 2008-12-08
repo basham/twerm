@@ -10,6 +10,8 @@ class Time_Period extends Model {
 	function Time_Period() {
 		parent::Model();
 		$this->load->database();
+		$this->load->model('Twitter_Post');
+		$this->load->model('Twitter_User');
 	}
 	
 	public function newInstance() {
@@ -27,10 +29,20 @@ class Time_Period extends Model {
 	// Load Model data based on twitter_screen_name
 	public function load( $time_period_id ) {
 		$query = $this->db->get_where('time_period', array('time_period_id' => $time_period_id));
-		if ( $query->num_rows() == 0 )
-			return;
-		$row = $query->row();
-		$this->setModel( $time_period_id, $row->start_date, $row->end_date );
+		return $this->_load( $query );
+	}
+	
+	public function loadByDate( $date ) {
+		$query = $this->db->get_where('time_period', array('start_date' => $date));
+		return $this->_load( $query );
+	}
+	
+	private function _load( $queryResults ) {
+		if ( $queryResults->num_rows() == 0 )
+			return false;
+		$row = $queryResults->row();
+		$this->setModel( $row->time_period_id, $row->start_date, $row->end_date, $row->recalculate_flag );
+		return true;
 	}
 	
 	public function save() {
@@ -43,6 +55,29 @@ class Time_Period extends Model {
 				$this->time_period_id = $query->row()->time_period_id;
 		} else
 			$this->db->update('time_period', $this, array('time_period_id' => $this->time_period_id));
+	}
+	
+	public function getTwitterPosts() {
+		
+		$a = array();
+		
+		$query = $this->db->query('SELECT * FROM time_period, twitter_post, twitter_user WHERE DATE_FORMAT(twitter_post.published_datetime, "%Y-%m-%d") BETWEEN DATE_FORMAT(time_period.start_date, "%Y-%m-%d") AND DATE_FORMAT(time_period.end_date, "%Y-%m-%d") AND twitter_post.twitter_user_name = twitter_user.twitter_user_name AND time_period.time_period_id = ?', array($this->time_period_id));
+		
+		foreach( $query->result() as $row ) {
+
+			// Creates Twitter User
+			$tu = $this->Twitter_User->newInstance();
+			$tu->setModelByObject( $row );
+			
+			// Creates Twitter Post
+			$tp = $this->Twitter_Post->newInstance();
+			$tp->setModelByObject( $row );
+			$tp->setTwitterUser( $tu );
+
+			$a[] = $tp;
+		}
+		
+		return $a;
 	}
 	
 	public function getPreviousTimePeriodId() {
