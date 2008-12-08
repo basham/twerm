@@ -46,8 +46,7 @@ class Twitter_Post extends Model {
 		$query = $this->db->get_where('twitter_post', array('twitter_post_id' => $twitter_post_id));
 		if ( $query->num_rows() == 0 )
 			return;
-		$row = $query->row();
-		$this->setModel( $twitter_post_id, $row->twitter_user_name, $row->time_period_id, $row->content, $row->published_datetime );
+		$this->setModelByObject( $query->row() );
 	}
 	
 	// Loads TwitterUser Model based on twitterScreenName

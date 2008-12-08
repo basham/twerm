@@ -12,6 +12,7 @@ class Time_Period extends Model {
 		$this->load->database();
 		$this->load->model('Twitter_Post');
 		$this->load->model('Twitter_User');
+		$this->load->model('Time_Period_Term');
 	}
 	
 	public function newInstance() {
@@ -75,6 +76,24 @@ class Time_Period extends Model {
 			$tp->setTwitterUser( $tu );
 
 			$a[] = $tp;
+		}
+		
+		return $a;
+	}
+	
+	public function getTerms() {
+		
+		$a = array();
+		
+		$query = $this->db->query('SELECT * FROM time_period_term WHERE count > 1 AND time_period_id = ? ORDER BY rank ASC', array($this->time_period_id));
+		
+		foreach( $query->result() as $row ) {
+			
+			// Creates Twitter Post
+			$t = $this->Time_Period_Term->newInstance();
+			$t->setModelByObject( $row );
+
+			$a[] = $t;
 		}
 		
 		return $a;

@@ -29,8 +29,7 @@ class Twitter_User extends Model {
 		$query = $this->db->get_where('twitter_user', array('twitter_user_name' => $twitter_user_name));
 		if ( $query->num_rows() == 0 )
 			return;
-		$row = $query->row();
-		$this->setModel( $twitter_user_name, $row->twitter_profile_image_url );
+		$this->setModelByObject( $query->row() );
 	}
 	
 	public function save() {

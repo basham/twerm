@@ -20,24 +20,27 @@ class Time_Period_Controller extends Controller {
 	}
 	
 	function day_period( $year, $month, $day ) {
-		
-		// TODO: Exception handling doesn't work
-		try {
-			$dt = new DateTime( $year.'-'.$month.'-'.$day );
-			$date = $dt->format('Y-m-d');
-		} catch( Exception $e ) {
-			echo 'your date sucks';
-			$date = '';
-		}
 
 		$tp = $this->Time_Period->newInstance();
-		$tp->loadByDate($date);
+		$tp->loadByDate( twerm_date($year, $month, $day) );
 		
 		$data = array();
-		
-		$data['twitter_posts'] = $tp->getTwitterPosts();
+		$data['terms'] = $tp->getTerms();
 		
 		$this->template->write('title', twerm_title( array( $tp->start_date ) ));
+		$this->template->write_view('content', 'term_list', $data);
+		$this->template->render();
+	}
+	
+	function day_period_timeline( $year, $month, $day ) {
+
+		$tp = $this->Time_Period->newInstance();
+		$tp->loadByDate( twerm_date($year, $month, $day) );
+		
+		$data = array();
+		$data['twitter_posts'] = $tp->getTwitterPosts();
+		
+		$this->template->write('title', twerm_title( array( $tp->start_date, 'Timeline' ) ));
 		$this->template->write_view('content', 'timeline', $data);
 		$this->template->render();
 	}
