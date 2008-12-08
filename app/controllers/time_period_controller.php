@@ -28,7 +28,11 @@ class Time_Period_Controller extends Controller {
 		$data = array();
 		$data['terms'] = $tp->getTerms();
 		
+		$date = twerm_date( $tp->start_date, '/' );
+		$timeline_url = '/'.$date.'/timeline';
+		
 		$this->template->write('title', twerm_title( array( $tp->start_date ) ));
+		$this->template->write('content', '<p><a href="'.$timeline_url.'"><strong>Timeline</strong></a></p>');
 		$this->template->write_view('content', 'term_list', $data);
 		$this->template->render();
 	}
@@ -40,8 +44,12 @@ class Time_Period_Controller extends Controller {
 		
 		$data = array();
 		$data['twitter_posts'] = $tp->getTwitterPosts();
+
+		$date = twerm_date( $tp->start_date, '/' );
+		$terms_url = '/'.$date;
 		
 		$this->template->write('title', twerm_title( array( $tp->start_date, 'Timeline' ) ));
+		$this->template->write('content', '<p><a href="'.$terms_url.'"><strong>Terms</strong></a></p>');
 		$this->template->write_view('content', 'timeline', $data);
 		$this->template->render();
 	}
@@ -59,7 +67,12 @@ class Time_Period_Controller extends Controller {
 		$data = array();
 		$data['twitter_posts'] = $t->getTwitterPosts();
 		
+		$date = twerm_date( $tp->start_date, '/' );
+		$timeline_url = '/'.$date.'/timeline';
+		$terms_url = '/'.$date;
+		
 		$this->template->write('title', twerm_title( array( $tp->start_date, $term ) ));
+		$this->template->write('content', '<p><a href="'.$terms_url.'"><strong>Terms</strong></a> / <a href="'.$timeline_url.'"><strong>Timeline</strong></a></p>');
 		$this->template->write_view('content', 'timeline', $data);
 		$this->template->render();
 	}
