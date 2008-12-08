@@ -10,9 +10,7 @@ class Time_Period extends Model {
 	function Time_Period() {
 		parent::Model();
 		$this->load->database();
-		$this->load->model('Twitter_Post');
-		$this->load->model('Twitter_User');
-		$this->load->model('Time_Period_Term');
+		$this->load->helper('twerm_helper');
 	}
 	
 	public function newInstance() {
@@ -42,6 +40,8 @@ class Time_Period extends Model {
 		return $this->_load( $query );
 	}
 	
+	
+	
 	private function _load( $queryResults ) {
 		if ( $queryResults->num_rows() == 0 )
 			return false;
@@ -61,46 +61,16 @@ class Time_Period extends Model {
 			$this->db->update('time_period', $this, array('time_period_id' => $this->time_period_id));
 	}
 	
-	public function getTwitterPosts() {
-		
-		$a = array();
-		
-		$query = $this->db->query('SELECT * FROM time_period, twitter_post, twitter_user WHERE DATE_FORMAT(twitter_post.published_datetime, "%Y-%m-%d") BETWEEN DATE_FORMAT(time_period.start_date, "%Y-%m-%d") AND DATE_FORMAT(time_period.end_date, "%Y-%m-%d") AND twitter_post.twitter_user_name = twitter_user.twitter_user_name AND time_period.time_period_id = ?', array($this->time_period_id));
-		
-		foreach( $query->result() as $row ) {
-
-			// Creates Twitter User
-			$tu = $this->Twitter_User->newInstance();
-			$tu->setModelByObject( $row );
-			
-			// Creates Twitter Post
-			$tp = $this->Twitter_Post->newInstance();
-			$tp->setModelByObject( $row );
-			$tp->setTwitterUser( $tu );
-
-			$a[] = $tp;
-		}
-		
-		return $a;
+	public function getDate() {
+		return twerm_date( $this->start_date );
 	}
 	
-	public function getTerms() {
-		
-		$a = array();
-		
-		$query = $this->db->query('SELECT * FROM time_period_term WHERE count > 1 AND time_period_id = ? ORDER BY rank ASC', array($this->time_period_id));
-		
-		foreach( $query->result() as $row ) {
-			
-			// Creates Twitter Post
-			$t = $this->Time_Period_Term->newInstance();
-			$t->setModelByObject( $row );
-			$t->setTimePeriod( $this );
-
-			$a[] = $t;
-		}
-		
-		return $a;
+	public function getURL() {
+		return '/'.twerm_date( $this->start_date, '/' );
+	}
+	
+	public function getTimelineURL() {
+		return $this->getURL().'/timeline';
 	}
 	
 	public function getPreviousTimePeriodId() {

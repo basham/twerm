@@ -14,7 +14,7 @@ class Twitter_Post extends Model {
 	
 	function Twitter_Post() {
 		parent::Model();
-		$this->load->model('Twitter_User');
+		$this->load->library('twerm');
 		$this->load->database();
 	}
 	
@@ -26,7 +26,7 @@ class Twitter_Post extends Model {
 	}
 	
 	// Set Model data
-	public function setModel( $twitter_post_id, $twitter_user_name, $time_period_id, $content, $published_datetime, $autoload = true ) {
+	public function setModel( $twitter_post_id, $twitter_user_name, $time_period_id, $content, $published_datetime, $autoload = false ) {
 		$this->twitter_post_id = $twitter_post_id;
 		$this->twitter_user_name = $twitter_user_name;
 		$this->time_period_id = $time_period_id;
@@ -49,10 +49,9 @@ class Twitter_Post extends Model {
 		$this->setModelByObject( $query->row() );
 	}
 	
-	// Loads TwitterUser Model based on twitterScreenName
+	// Loads TwitterUser Model based on twitterUserName
 	public function loadTwitterUser() {
-		$this->_twitter_user = $this->Twitter_User->newInstance();
-		$this->_twitter_user->load( $this->twitter_user_name );
+		$this->setTwitterUser( $this->twerm->getTwitterUser( $this->twitter_user_name ) );
 	}
 	
 	public function setTwitterUser( $twitterUser ) {

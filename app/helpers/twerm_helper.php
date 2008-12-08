@@ -13,9 +13,10 @@ if ( ! function_exists('twerm_title')) {
 
 if ( ! function_exists('twerm_date')) {
 	
-	function twerm_date( $date, $delimiter = '-' ) {
+	function twerm_date( $date, $delimiter = null ) {
 		$dt = new DateTime( $date );
-		$d = $dt->format('Y'.$delimiter.'m'.$delimiter.'d');
+		$format = $delimiter != null ? 'Y'.$delimiter.'m'.$delimiter.'d' : 'F j, Y';
+		$d = $dt->format( $format );
 		return $d;
 	}
 	

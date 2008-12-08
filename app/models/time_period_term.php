@@ -53,32 +53,11 @@ class Time_Period_Term extends Model {
 	}
 	
 	public function getURL() {
-		$date = twerm_date( $this->getTimePeriod()->start_date, '/' );
-		$url = '/'.$date.'/term/'.$this->term;
-		return $url;
+		return $this->getTimePeriod()->getURL().$this->getHistoryURL();
 	}
 	
-	public function getTwitterPosts() {
-		
-		$a = array();
-		
-		$query = $this->db->query('SELECT * FROM time_period, twitter_post, twitter_user, twitter_post_term WHERE DATE_FORMAT(twitter_post.published_datetime, "%Y-%m-%d") BETWEEN DATE_FORMAT(time_period.start_date, "%Y-%m-%d") AND DATE_FORMAT(time_period.end_date, "%Y-%m-%d") AND twitter_post.twitter_user_name = twitter_user.twitter_user_name AND time_period.time_period_id = ? AND twitter_post.twitter_post_id = twitter_post_term.twitter_post_id AND twitter_post_term.term = ? ORDER BY twitter_post.published_datetime DESC', array($this->time_period_id, $this->term));
-		
-		foreach( $query->result() as $row ) {
-
-			// Creates Twitter User
-			$tu = $this->Twitter_User->newInstance();
-			$tu->setModelByObject( $row );
-			
-			// Creates Twitter Post
-			$tp = $this->Twitter_Post->newInstance();
-			$tp->setModelByObject( $row );
-			$tp->setTwitterUser( $tu );
-
-			$a[] = $tp;
-		}
-		
-		return $a;
+	public function getHistoryURL() {
+		return '/term/'.$this->term;
 	}
 	
 }
