@@ -59,6 +59,13 @@ th.number, td.number {
 	text-align: right; }
 
 
+.profile-img {
+	float: left;
+	margin-right: 1em;
+}
+
+br.clear {
+	clear: both; }
 
 /**
 * ==================================================
