@@ -100,10 +100,10 @@ private $c = 0;
 		$t->calculateTermFrequency();
 	}
 	
-	function tfidf() {
+	function tfidf($id = 1) {
 		$this->load->model('Time_Period');
 		$t = $this->Time_Period->newInstance();
-		$t->load(1);
+		$t->load($id);
 		$t->calculateTFIDF();
 	}
 	
