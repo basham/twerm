@@ -40,8 +40,6 @@ class Time_Period extends Model {
 		return $this->_load( $query );
 	}
 	
-	
-	
 	private function _load( $queryResults ) {
 		if ( $queryResults->num_rows() == 0 )
 			return false;
@@ -68,6 +66,10 @@ class Time_Period extends Model {
 	public function getURL() {
 		return '/'.twerm_date( $this->start_date, '/' );
 	}
+
+	public function getTermsURL() {
+		return $this->getURL().'/terms';
+	}	
 	
 	public function getTimelineURL() {
 		return $this->getURL().'/timeline';

@@ -40,14 +40,16 @@
 |
 */
 
-$route['default_controller'] = "term_controller";
+$route['default_controller'] = "main_controller";
 $route['scaffolding_trigger'] = "";
 
-$route['(:num)/(:num)/(:num)'] = "time_period_controller/day_period/$1/$2/$3";
-$route['(:num)/(:num)/(:num)/timeline'] = "time_period_controller/day_period_timeline/$1/$2/$3";
-$route['(:num)/(:num)/(:num)/term/(:any)'] = "time_period_controller/day_period_term/$1/$2/$3/$4";
+$route['(:num)/(:num)/(:num)'] = "main_controller/day_period/$1/$2/$3";
+$route['(:num)/(:num)/(:num)/terms'] = "main_controller/day_period_terms/$1/$2/$3";
+$route['(:num)/(:num)/(:num)/terms/(:any)'] = "main_controller/day_period_term/$1/$2/$3/$4";
+$route['(:num)/(:num)/(:num)/timeline'] = "main_controller/day_period_timeline/$1/$2/$3";
 
-$route['term/(:any)'] = "time_period_controller/term/$1";
+$route['terms'] = "main_controller/terms";
+$route['terms/(:any)'] = "main_controller/term/$1";
 
 
 /* End of file routes.php */

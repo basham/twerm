@@ -57,7 +57,7 @@ class Time_Period_Term extends Model {
 	}
 	
 	public function getHistoryURL() {
-		return '/term/'.$this->term;
+		return '/terms/'.$this->term;
 	}
 	
 }
