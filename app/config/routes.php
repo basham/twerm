@@ -43,6 +43,8 @@
 $route['default_controller'] = "main_controller";
 $route['scaffolding_trigger'] = "";
 
+$route['(:num)'] = "main_controller/year_period/$1";
+$route['(:num)/(:num)'] = "main_controller/month_period/$1/$2";
 $route['(:num)/(:num)/(:num)'] = "main_controller/day_period/$1/$2/$3";
 $route['(:num)/(:num)/(:num)/terms'] = "main_controller/day_period_terms/$1/$2/$3";
 $route['(:num)/(:num)/(:num)/terms/(:any)'] = "main_controller/day_period_term/$1/$2/$3/$4";

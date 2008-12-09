@@ -11,16 +11,47 @@ class Main_Controller extends Controller {
 		$this->load->model('Time_Period');
 	}
 
+	function index() {
+		$this->year_list();
+	}
+	
+	function year_list() {
+		$data = array();
+
+		$data['years'] = $this->twerm->getTimePeriodYears();
+		
+		$this->template->write('title', twerm_title( array( 'Years' ) ));
+		$this->template->write_view('content', 'year_list', $data);
+		$this->template->render();
+	}
+
 	// /2008
 	function year_period( $year ) {
 		// List all Months for the year
 		// Summize top terms?
+		
+		$data = array();
+		$data['year'] = $year;
+		$data['months'] = $this->twerm->getTimePeriodMonths( $year );
+		
+		$this->template->write('title', twerm_title( array( $year ) ));
+		$this->template->write('content', '<p><a href="/"><strong>All Years</strong></a></p>');
+		$this->template->write_view('content', 'month_list', $data);
+		$this->template->render();
 	}
 	
 	// /2008/12
 	function month_period( $year, $month ) {
 		// List all Days for the month
 		// Summize top terms?
+		
+		$data = array();
+		$data['time_periods'] = $this->twerm->getTimePeriodsByMonth( $year, $month );
+		
+		$this->template->write('title', twerm_title( array( twerm_month($year.$month.'01') ) ));
+		$this->template->write('content', '<p><a href="/'.$year.'"><strong>'.$year.'</strong></a></p>');
+		$this->template->write_view('content', 'time_period_list', $data);
+		$this->template->render();	
 	}
 	
 	// /2008/12/01
@@ -30,6 +61,7 @@ class Main_Controller extends Controller {
 		$tp->loadByDate( $year.$month.$day );
 		
 		$this->template->write('title', twerm_title( array( $tp->getDate() ) ));
+		$this->template->write('content', '<p><a href="'.$tp->getMonthURL().'"><strong>'.$tp->getMonth().'</strong></a></p>');
 		$this->template->write('content', '<p><a href="'.$tp->getURL().'"><strong>'.$tp->getDate().'</strong></a> / <a href="'.$tp->getTermsURL().'">Terms</a> / <a href="'.$tp->getTimelineURL().'">Timeline</a></p>');
 		$this->template->render();
 	}

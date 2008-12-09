@@ -22,6 +22,17 @@ if ( ! function_exists('twerm_date')) {
 	
 }
 
+if ( ! function_exists('twerm_month')) {
+	
+	function twerm_month( $date, $delimiter = null ) {
+		$dt = new DateTime( $date );
+		$format = $delimiter != null ? 'Y'.$delimiter.'m' : 'F Y';
+		$d = $dt->format( $format );
+		return $d;
+	}
+	
+}
+
 
 /* End of file twerm_helper.php */
 /* Location: ./app/helpers/twerm_helper.php */

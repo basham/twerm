@@ -20,7 +20,51 @@ class Twerm {
 		
 		return $tu;
 	}
+	
+	public function getTimePeriodYears() {
+	
+		$a = array();
 
+		$query = $this->CI->db->query('SELECT YEAR(start_date) AS year FROM time_period RIGHT OUTER JOIN time_period_term ON time_period.time_period_id = time_period_term.time_period_id GROUP BY year ORDER BY year DESC');
+		
+		foreach( $query->result() as $row ) {
+			$a[] = $row->year;
+		}
+
+		return $a;
+	}
+	
+	public function getTimePeriodMonths( $year ) {
+	
+		$a = array();
+
+		$query = $this->CI->db->query('SELECT DATE_FORMAT(start_date, "%m") AS month FROM time_period RIGHT OUTER JOIN time_period_term ON time_period.time_period_id = time_period_term.time_period_id WHERE DATE_FORMAT(start_date, "%Y") = "2008" GROUP BY month ORDER BY month ASC', array($year));
+		
+		foreach( $query->result() as $row ) {
+			$a[] = $row->month;
+		}
+
+		return $a;
+	}
+
+	public function getTimePeriodsByMonth( $year, $month ) {
+		
+		$a = array();
+		
+		$query = $this->CI->db->query('SELECT * FROM time_period RIGHT OUTER JOIN time_period_term ON time_period.time_period_id = time_period_term.time_period_id WHERE DATE_FORMAT(start_date, "%Y-%m") = ? GROUP BY time_period.time_period_id', array($year.'-'.$month));
+
+		foreach( $query->result() as $row ) {
+
+			// Creates Time Period Term
+			$tp = $this->CI->Time_Period->newInstance();
+			$tp->setModelByObject( $row );
+
+			$a[] = $tp;
+		}
+
+		return $a;
+	}
+	
 	public function getTimePeriodTerms( $timePeriod ) {
 
 		$a = array();

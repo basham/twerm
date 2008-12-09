@@ -67,6 +67,13 @@ class Time_Period extends Model {
 		return '/'.twerm_date( $this->start_date, '/' );
 	}
 
+	public function getMonth() {
+		return twerm_month( $this->start_date );
+	}
+	
+	public function getMonthURL() {
+		return '/'.twerm_month( $this->start_date, '/' );
+	}
 	public function getTermsURL() {
 		return $this->getURL().'/terms';
 	}	
