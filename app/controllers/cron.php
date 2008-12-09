@@ -25,7 +25,13 @@ class Cron extends Controller {
 		
 		$json_url = 'http://search.twitter.com/search.json?';
 		
-		$json = file_get_contents( $json_url.'from='.$username.'&since='.$end.'&until='.$end );
+		try {
+			$json = file_get_contents( $json_url.'from='.$username.'&since='.$end.'&until='.$end );
+		}
+		catch( Exception $e ) {
+			return;
+		}
+		
 		$tweets = json_decode( $json, TRUE );
 
 		//print_r($tweets['results'][0]);
@@ -41,7 +47,7 @@ class Cron extends Controller {
 			
 			// Saves Tweet to DB
 			$tp = $this->Twitter_Post->newInstance();
-			$tp->setModel( $tweet['id'], $tweet['from_user'], 1, $tweet['text'], $tweet['created_at']);
+			$tp->setModel( $tweet['id'], $tweet['from_user'], $tweet['text'], $tweet['created_at']);
 			$tp->save();
 
 			$a[] = $tp;
@@ -49,18 +55,36 @@ class Cron extends Controller {
 		}
 		
 		$twitter_post_data['twitter_posts'] = $a;
-echo $this->c.' '.count($a).' '.$username.'<br/>';
+		echo $this->c.' '.count($a).' '.$username.'<br/>';
+
+
+
 		//$this->template->write('title', 'Tweets | '.$username);
 		//$this->template->write_view('content', 'timeline', $twitter_post_data);
 		//$this->template->render();
 	}
 	
 	function loop( $date = '2008-11-15' ) {
-		foreach( $this->users as $u )
-			$this->user( $u, $date );
+		
+		echo '<p><strong>'.$date.'</strong></p>';
+		
+		$this->load->model('Time_Period');
+		$this->load->database();
+		
+		$query = $this->db->get('twitter_user');
+		
+		foreach( $query->result() as $row )
+			$this->user( $row->twitter_user_name, $date );
+			
+		$t = $this->Time_Period->newInstance();
+		$t->setModel(0, $date, $date);
+		$t->save();
+		$t->loadByDate($date);
+
+		$t->calculateTFIDF();
 	}
 private $c = 0;
-	public $users = array('BarackObama', 'kevinrose', 'leolaporte', 'cnnbrk', 'alexalbrecht', 'JasonCalacanis', 'Scobleizer', 'Veronica', 'THErealDVORAK', 'ricksanchezcnn', 'TechCrunch', 'hotdogsladies');
+	public $users = array('BarackObama', 'kevinrose', 'leolaporte', 'cnnbrk', 'alexalbrecht', 'JasonCalacanis', 'Scobleizer', 'Veronica', 'THErealDVORAK', 'ricksanchezcnn', 'TechCrunch', 'hotdogsladies', 'twitter', 'macrumors', 'hodgman', 'patricknorton', 'timoreilly', 'TheOnion', 'Ihnatko', 'alexlindsay', 'twitlive', 'photomatt', 'kevinrose', 'zeldman', 'nytimes', 'majornelson', 'davewiner', 'gruber', 'chrispirillo', 'guykawasaki', 'ijustine', 'ev', 'wilw', 'nickbasham', 'garyvee', 'problogger', 'feliciaday', 'jowyang', 'ambermacarthur', 'om', 'jeffcannata', 'sarahlane', 'buckhollywood', 'leahculver', 'nick', 'Aubs');
 	
 	function loopy() {
 		$this->load->model('Twitter_Post');
@@ -87,19 +111,45 @@ private $c = 0;
 		
 		$this->load->helper('date');
 		$this->load->model('Time_Period');
-		
-		for( $d = 1; $d <= days_in_month($m, $y); $d++ ) {
+		//days_in_month($m, $y)
+		for( $d = 1; $d <= 14; $d++ ) {
 			$dt = new DateTime( $y.'-'.$m.'-'.$d );
 			$date = $dt->format('Y-m-d');
-			$t = $this->Time_Period->newInstance();
-			$t->setModel(0, $date, $date);
-			$t->save();
+			//$t = $this->Time_Period->newInstance();
+			//$t->setModel(0, $date, $date);
+			//$t->save();
 			echo '<strong>'.$date.'</strong><br/>';
 			
 			$this->loop($date);
-			$t->calculateTFIDF();
+			//$t->calculateTFIDF();
 			echo '<br/>';
 		}
+	}
+	
+	function loopinsertusers() {
+		foreach( $this->users as $user )
+			$this->insertuser( $user );
+	}
+	
+	function insertuser( $user ) {
+		
+		$this->load->model('Twitter_User');
+		
+		$tu = $this->Twitter_User->newInstance();
+		$tu->setModel( $user, '' );
+		$tu->save();
+	}
+	
+	function next() {
+		$this->load->database();
+		$query = $this->db->query('SELECT ADDDATE(start_date, 1) AS next_date FROM `time_period` ORDER BY start_date DESC LIMIT 1');
+		if ( $query->num_rows() == 0 )
+			$date = "2008-09-01";
+		else
+			$date = $query->row()->next_date;
+		if ( $date >= "2008-12-08" )
+			return;
+		$this->loop( $date );
 	}
 	
 }

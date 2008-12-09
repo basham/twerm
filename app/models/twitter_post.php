@@ -4,12 +4,10 @@ class Twitter_Post extends Model {
 	
 	public $twitter_post_id = 0;
 	public $twitter_user_name = '';
-	public $time_period_id = 0;
 	public $content = '';
 	public $published_datetime = '';
 	
 	private $_twitter_user = null;
-	private $_time_period = null;
 	private $_uniqueTerms = array();
 	
 	function Twitter_Post() {
@@ -26,10 +24,9 @@ class Twitter_Post extends Model {
 	}
 	
 	// Set Model data
-	public function setModel( $twitter_post_id, $twitter_user_name, $time_period_id, $content, $published_datetime, $autoload = false ) {
+	public function setModel( $twitter_post_id, $twitter_user_name, $content, $published_datetime, $autoload = false ) {
 		$this->twitter_post_id = $twitter_post_id;
 		$this->twitter_user_name = $twitter_user_name;
-		$this->time_period_id = $time_period_id;
 		$this->content = $content;
 		$d = new DateTime( $published_datetime );
 		$this->published_datetime = $d->format('Y-m-d H:i:s');
@@ -38,7 +35,7 @@ class Twitter_Post extends Model {
 	}
 	
 	public function setModelByObject( $obj ) {
-		$this->setModel( $obj->twitter_post_id, $obj->twitter_user_name, $obj->time_period_id, $obj->content, $obj->published_datetime );
+		$this->setModel( $obj->twitter_post_id, $obj->twitter_user_name, $obj->content, $obj->published_datetime );
 	}
 	
 	// Load Model data based on TwitterPostId
@@ -75,10 +72,6 @@ class Twitter_Post extends Model {
 		if ( !$this->_twitter_user || $force )
 			$this->loadTwitterUser();
 		return $this->_twitter_user;
-	}
-	
-	// Get TimePeriod Model based on timePeriodId
-	public function getTimePeriod() {
 	}
 	
 	// Permalink to the Twitter Post on the Twitter site
